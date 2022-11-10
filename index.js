@@ -47,10 +47,10 @@ app.post('/login', async (req, res) => {
     }
     try {
         if (await bcrypt.compare(req.body.password, user.password)) {
-            const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET)
-            res.json({message: 'Logged in', accessToken: accessToken})
+            const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30s'})
+            res.status(200).json({message: 'Logged in', accessToken: accessToken})
         } else {
-            res.json({message: 'Not allowed'})
+            res.status(401).json({message: 'Not allowed'})
         }
     } catch {
         res.status(500).send()
@@ -65,7 +65,7 @@ function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization']
     const token = authHeader && authHeader.split(" ")[1]
     if (token == null) {
-        return res.sendStatus(400)
+        return res.sendStatus(403).json({message: "Unauthorised"})
     } 
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30s'}, (err, user) => {
         if (err) return res.sendStatus(403)
